@@ -19,7 +19,6 @@ jobs:
       - name: Check required docs folder
         run: |
           test -d docs
-
       - name: Check required planning documents
         run: |
           test -f "docs/Entity Relationship Diagram.jpg"
