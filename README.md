@@ -33,10 +33,9 @@ The SQL script creates and populates the RaceDay database using SQL Server. It i
 ### CI/CD
 
 A GitHub Actions workflow is used to validate the repository structure and confirm that the required planning documents are present.
+<img width="1267" height="622" alt="Screenshot 2026-09-03 234650" src="https://github.com/user-attachments/assets/d854aae1-e4f3-4666-b0cf-e095bf6368af" />
 
-**Successful GitHub Actions build:**
 
-_Add screenshot of the successful green GitHub Actions build here._
 
 ### YouTube Presentation
 
