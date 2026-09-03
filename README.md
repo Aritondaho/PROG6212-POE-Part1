@@ -14,7 +14,6 @@ Organisers can manage race events and categories, view participant enrolments an
 #### Participant
 
 Participants can view available events and categories, enrol for events and view their race results and profile information.
-
 ### Planning Documents
 
 The planning documents are available in the `docs` folder:
