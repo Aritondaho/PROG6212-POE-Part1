@@ -9,7 +9,6 @@ RaceDay is a race event management system designed to manage organisers, partici
 Part 1 focuses on planning the database structure, RESTful API endpoints and SQL Server database schema before application development begins.
 
 ### User Roles
-
 #### Organiser
 Organisers can manage race events and categories, view participant enrolments and manage race results.
 
