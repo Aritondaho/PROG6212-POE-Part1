@@ -32,7 +32,6 @@ A GitHub Actions workflow is used to validate the repository structure and confi
 <img width="1267" height="622" alt="Screenshot 2026-09-03 234650" src="https://github.com/user-attachments/assets/d854aae1-e4f3-4666-b0cf-e095bf6368af" />
 
 
-
 ### YouTube Presentation
 
 The unlisted YouTube presentation explains the planning documents, ERD decisions, API endpoint choices and the SQL script running in SQL Server Management Studio.
