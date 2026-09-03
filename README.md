@@ -11,7 +11,6 @@ Part 1 focuses on planning the database structure, RESTful API endpoints and SQL
 ### User Roles
 
 #### Organiser
-
 Organisers can manage race events and categories, view participant enrolments and manage race results.
 
 #### Participant
