@@ -34,7 +34,7 @@ A GitHub Actions workflow is used to validate the repository structure and confi
 
 The unlisted YouTube presentation explains the planning documents, ERD decisions, API endpoint choices and the SQL script running in SQL Server Management Studio.
 **YouTube Video:**  
-_Add your unlisted YouTube video link here._
+https://youtu.be/MPQG_Ewtgg8
 
 ### Repository Structure
 
