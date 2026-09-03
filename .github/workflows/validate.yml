@@ -1,0 +1,30 @@
+name: Validate Repository
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required docs folder
+        run: |
+          test -d docs
+
+      - name: Check required planning documents
+        run: |
+          test -f "docs/Entity Relationship Diagram.jpg"
+          test -f "docs/API and Database Plan.pdf"
+          test -f "docs/Database SQL Script.sql"
+
+      - name: Validation successful
+        run: echo "All required planning documents are present."
