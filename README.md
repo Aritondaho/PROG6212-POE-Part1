@@ -41,7 +41,6 @@ _Add your unlisted YouTube video link here._
 
 ### Repository Structure
 
-```text
 PROG6212-POE-Part1/
 │
 ├── docs/
