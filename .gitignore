@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+out/
+publish/
+
+# Visual Studio / IDE
+.vs/
+.vscode/
+*.user
+*.suo
+.idea/
+
+# Runtime data
+uploads/
+wwwroot/uploads/
+*.log
+
+# OS files
+Thumbs.db
+.DS_Store
