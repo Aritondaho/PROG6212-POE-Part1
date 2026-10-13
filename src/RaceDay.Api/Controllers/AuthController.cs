@@ -115,4 +115,15 @@ public class AuthController(RaceDayDbContext db, IPasswordHasher<User> passwordH
 
         return Ok(UserProfileResponse.FromUser(user));
     }
+
+    /// <summary>Ends the current session. Later requests that reuse the old cookie get 401.</summary>
+    [HttpPost("logout")]
+    [SessionAuthorize]
+    [ProducesResponseType<MessageResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    public IActionResult Logout()
+    {
+        HttpContext.Session.Clear();
+        return Ok(new MessageResponse("Signed out."));
+    }
 }

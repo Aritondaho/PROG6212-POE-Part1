@@ -31,6 +31,9 @@ public class RegisterRequest
     public DateOnly? DateOfBirth { get; set; }
 }
 
+/// <summary>A simple confirmation message returned by actions that have no other data to return.</summary>
+public record MessageResponse(string Message);
+
 /// <summary>Body for <c>POST /api/auth/login</c>.</summary>
 public class LoginRequest
 {
