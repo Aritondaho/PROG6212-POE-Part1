@@ -12,7 +12,7 @@ public class RaceDayDbContextFactory : IDesignTimeDbContextFactory<RaceDayDbCont
     public RaceDayDbContext CreateDbContext(string[] args)
     {
         var options = new DbContextOptionsBuilder<RaceDayDbContext>()
-            .UseSqlServer("Server=localhost;Database=RaceDayDB;Trusted_Connection=True;TrustServerCertificate=True;")
+            .UseSqlServer("Server=localhost;Database=RaceDayPart2;Trusted_Connection=True;TrustServerCertificate=True;")
             .Options;
 
         return new RaceDayDbContext(options);
