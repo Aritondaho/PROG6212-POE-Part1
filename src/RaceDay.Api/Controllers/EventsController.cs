@@ -4,14 +4,15 @@ using RaceDay.Api.Data;
 using RaceDay.Api.Dtos;
 using RaceDay.Api.Models;
 using RaceDay.Api.Security;
+using RaceDay.Api.Services;
 
 namespace RaceDay.Api.Controllers;
 
-/// <summary>Public event browsing. Organiser write operations are added in the next part of this controller.</summary>
+/// <summary>Event browsing (public) and event management (Organisers who own the event).</summary>
 [ApiController]
 [Route("api/events")]
 [Produces("application/json")]
-public class EventsController(RaceDayDbContext db) : RaceDayControllerBase
+public class EventsController(RaceDayDbContext db, IBannerStorage bannerStorage) : RaceDayControllerBase
 {
     /// <summary>Lists events. Anyone can call this. Use the optional filters to narrow the list.</summary>
     /// <param name="type">Only events of this type: Run, Walk or Cycle.</param>
@@ -174,6 +175,42 @@ public class EventsController(RaceDayDbContext db) : RaceDayControllerBase
         await db.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    /// <summary>Uploads a banner image for an event owned by the signed-in Organiser and saves its URL on the event.</summary>
+    /// <remarks>Accepts JPEG, PNG or WebP images up to 5 MB. The image is stored by the API, never by the client.</remarks>
+    [HttpPost("{id:int}/upload-banner")]
+    [SessionAuthorize(UserRoles.Organiser)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType<BannerUploadResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BannerUploadResponse>> UploadBanner(int id, [FromForm] BannerUploadRequest form)
+    {
+        var (evt, failure) = await LoadOwnedEventAsync(id);
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        var file = form.File;
+        if (!BannerImageRules.ExtensionsByContentType.ContainsKey(file.ContentType.ToLowerInvariant()))
+        {
+            return Problem(detail: "Banner must be a JPEG, PNG or WebP image.", statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        if (file.Length == 0 || file.Length > BannerImageRules.MaxBytes)
+        {
+            return Problem(detail: "Banner must be between 1 byte and 5 MB.", statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var imageUrl = await bannerStorage.SaveAsync(file, HttpContext.RequestAborted);
+
+        evt!.BannerImageURL = imageUrl;
+        await db.SaveChangesAsync();
+
+        return Ok(new BannerUploadResponse(imageUrl));
     }
 
     /// <summary>

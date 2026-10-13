@@ -32,6 +32,16 @@ public class EventRequest
     public string? BannerImageUrl { get; set; }
 }
 
+/// <summary>Form body for <c>POST /api/events/{id}/upload-banner</c>. The file must be a JPEG, PNG or WebP image of up to 5 MB.</summary>
+public class BannerUploadRequest
+{
+    [Required]
+    public IFormFile File { get; set; } = null!;
+}
+
+/// <summary>Response from the banner upload endpoint.</summary>
+public record BannerUploadResponse(string ImageUrl);
+
 /// <summary>An event as returned by the API.</summary>
 public record EventResponse(
     int EventID,

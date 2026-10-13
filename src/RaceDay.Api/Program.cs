@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RaceDay.Api.Data;
 using RaceDay.Api.Models;
 using RaceDay.Api.Security;
+using RaceDay.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,9 @@ builder.Services.AddDbContext<RaceDayDbContext>(options =>
 
 // PBKDF2 password hashing from ASP.NET Core Identity. The hasher is stateless, so a singleton is safe.
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+
+// Banner images are stored locally in Part 2. Part 3 swaps this for Azure Blob Storage.
+builder.Services.AddSingleton<IBannerStorage, LocalBannerStorage>();
 
 // Server-side session state. The session stores only the user's ID and role, keyed by an opaque cookie.
 builder.Services.AddDistributedMemoryCache();
