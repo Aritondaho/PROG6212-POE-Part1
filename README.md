@@ -84,6 +84,17 @@ dotnet run --project src/RaceDay.Api
 
 Then open **http://localhost:5285/swagger** (or the port shown in the console). In Development the API also loads sample data (see below).
 
+**Expected console output** (the messages you should see, in this order, with timestamps omitted):
+
+```
+Applying migration '20261013102330_InitialCreate'.      (first run only)
+Now listening on: http://localhost:5285
+Application started. Press Ctrl+C to shut down.
+Hosting environment: Development
+```
+
+The warning `Failed to determine the https port for redirect` is expected when you use the `http` profile. It does not affect anything. Opening `http://localhost:5285/` redirects to `/swagger`.
+
 ### 4. Try the API in Swagger
 
 1. Open `POST /api/auth/login` and sign in with a demo account.
