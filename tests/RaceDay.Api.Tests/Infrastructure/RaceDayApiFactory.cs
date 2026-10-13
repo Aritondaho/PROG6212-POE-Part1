@@ -13,9 +13,12 @@ namespace RaceDay.Api.Tests.Infrastructure;
 /// </summary>
 public sealed class RaceDayApiFactory : WebApplicationFactory<Program>
 {
+    private const string DefaultConnectionString = "Server=localhost;Trusted_Connection=True;TrustServerCertificate=True;";
+
     private static readonly string BaseConnectionString =
-        Environment.GetEnvironmentVariable("RACEDAY_TEST_CONNECTION")
-        ?? "Server=localhost;Trusted_Connection=True;TrustServerCertificate=True;";
+        string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RACEDAY_TEST_CONNECTION"))
+            ? DefaultConnectionString
+            : Environment.GetEnvironmentVariable("RACEDAY_TEST_CONNECTION")!;
 
     private readonly string _databaseName = $"RaceDayTests_{Guid.NewGuid():N}";
 
