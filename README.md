@@ -271,6 +271,6 @@ The workflow `.github/workflows/part2-api-ci.yml` runs on every push and pull re
 
 ## AI Tool Disclosure
 
-Claude (Anthropic) was used to help draft and review the code, tests and documentation in this part. The design, endpoint choices and testing were checked by the author, and the author can explain the code.
+AI tools were used to help draft and review parts of the code, tests and documentation in this part. The design, endpoint choices and testing were checked by the author, and the author can explain the code.
 
 > **TODO for the author:** confirm this statement is accurate for your work before you submit.
