@@ -126,7 +126,7 @@ public class EventsController(RaceDayDbContext db, IBannerStorage bannerStorage)
             return Problem(detail: "eventType must be Run, Walk or Cycle.", statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var (evt, failure) = await LoadOwnedEventAsync(id);
+        var (evt, failure) = await LoadOwnedEventAsync(db, id);
         if (failure is not null)
         {
             return failure;
@@ -158,7 +158,7 @@ public class EventsController(RaceDayDbContext db, IBannerStorage bannerStorage)
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteEvent(int id)
     {
-        var (evt, failure) = await LoadOwnedEventAsync(id);
+        var (evt, failure) = await LoadOwnedEventAsync(db, id);
         if (failure is not null)
         {
             return failure;
@@ -188,7 +188,7 @@ public class EventsController(RaceDayDbContext db, IBannerStorage bannerStorage)
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BannerUploadResponse>> UploadBanner(int id, [FromForm] BannerUploadRequest form)
     {
-        var (evt, failure) = await LoadOwnedEventAsync(id);
+        var (evt, failure) = await LoadOwnedEventAsync(db, id);
         if (failure is not null)
         {
             return failure;
@@ -211,25 +211,5 @@ public class EventsController(RaceDayDbContext db, IBannerStorage bannerStorage)
         await db.SaveChangesAsync();
 
         return Ok(new BannerUploadResponse(imageUrl));
-    }
-
-    /// <summary>
-    /// Finds an event and checks that the signed-in Organiser owns it. Returns 404 when the event does not exist
-    /// and 403 when another Organiser owns it.
-    /// </summary>
-    private async Task<(Event? Event, ActionResult? Failure)> LoadOwnedEventAsync(int id)
-    {
-        var evt = await db.Events.Include(e => e.Organiser).FirstOrDefaultAsync(e => e.EventID == id);
-        if (evt is null)
-        {
-            return (null, Problem(detail: $"Event {id} was not found.", statusCode: StatusCodes.Status404NotFound));
-        }
-
-        if (evt.Organiser.UserID != CurrentUserId)
-        {
-            return (null, Problem(detail: "You can only change events that you created.", statusCode: StatusCodes.Status403Forbidden));
-        }
-
-        return (evt, null);
     }
 }
