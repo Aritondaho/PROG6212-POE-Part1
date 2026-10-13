@@ -33,8 +33,9 @@ Role rules are enforced by the `[SessionAuthorize]` attribute in the API, not by
 ### Prerequisites
 
 - **.NET 10 SDK** (`dotnet --version` should print `10.0.x`)
-- **SQL Server** (2019 or later). LocalDB and Express both work. The connection string uses Windows authentication by default.
-- *Optional:* Visual Studio with the ASP.NET and web development workload, on a version that supports .NET 10, or SQL Server Management Studio (SSMS).
+- **SQL Server 2019 or later** (Developer, Express or LocalDB). The default connection uses Windows authentication on a local server. If your setup differs, see step 2.
+- *Optional:* Visual Studio with the ASP.NET and web development workload (a version that supports .NET 10), or SQL Server Management Studio (SSMS) to look at the database.
+- No other tools are needed. The project does not depend on any file outside the repository, so a fresh clone is enough.
 
 ### 1. Clone and restore
 
@@ -47,17 +48,29 @@ dotnet restore RaceDay.slnx
 
 `NuGet.config` in the repository points restore at nuget.org, so the build does not depend on any private feed.
 
-### 2. Configure the database connection (optional)
+### 2. Point the API at your SQL Server (check this first)
 
-The default connection is in `src/RaceDay.Api/appsettings.json`:
+The API reads one setting, the connection string `DefaultConnection`. The default in `src/RaceDay.Api/appsettings.json` is:
 
 ```json
 "DefaultConnection": "Server=localhost;Database=RaceDayPart2;Trusted_Connection=True;TrustServerCertificate=True;"
 ```
 
-Change `Server=` if your SQL Server instance has a different name, for example `Server=.\\SQLEXPRESS`. You can also set it with an environment variable: `ConnectionStrings__DefaultConnection`.
+This works when SQL Server runs on the same machine on the default instance and your Windows account can sign in to it. If that is not your setup, **do not edit the repository files.** Set an environment variable in the terminal you run the API from. It overrides `appsettings.json`.
 
-The database does not have to exist yet. On startup the API applies the EF Core migrations and creates `RaceDayPart2` if needed.
+PowerShell (named instance such as SQLEXPRESS):
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = "Server=localhost\SQLEXPRESS;Database=RaceDayPart2;Trusted_Connection=True;TrustServerCertificate=True;"
+```
+
+PowerShell (SQL Server login instead of Windows login):
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = "Server=localhost;Database=RaceDayPart2;User Id=sa;Password=YourPassword;TrustServerCertificate=True;"
+```
+
+The database does not need to exist. On startup the API applies the EF Core migrations and creates `RaceDayPart2` by itself. Your other databases are never touched.
 
 ### 3. Run the API
 
@@ -101,11 +114,16 @@ The tests run the real API in-process. Each test class gets its own SQL Server d
 dotnet test RaceDay.slnx
 ```
 
-By default the tests use local Windows authentication. To point them elsewhere, set `RACEDAY_TEST_CONNECTION`, for example:
+**Expected result:** the last line reads `Passed!  - Failed:     0, Passed:    51, Skipped:     0, Total:    51`, and the command exits with code 0.
 
-```bash
-set RACEDAY_TEST_CONNECTION=Server=localhost,1433;User Id=sa;Password=YourPassword;TrustServerCertificate=True;
+The tests use the same default connection as the API (local Windows authentication). If your SQL Server setup differs, set `RACEDAY_TEST_CONNECTION` in the same terminal, using the same format as step 2 above. For example, PowerShell:
+
+```powershell
+$env:RACEDAY_TEST_CONNECTION = "Server=localhost;User Id=sa;Password=YourPassword;TrustServerCertificate=True;"
+dotnet test RaceDay.slnx
 ```
+
+The test databases are named `RaceDayTests_<random>` and are dropped automatically.
 
 The GitHub Actions workflow sets this for you.
 
