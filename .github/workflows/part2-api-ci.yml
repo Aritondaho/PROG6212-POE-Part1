@@ -1,0 +1,59 @@
+name: Part 2 API CI
+
+# Builds the RaceDay API and runs its unit and API tests on every push and pull request.
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    # A real SQL Server, so the tests exercise the same EF Core provider and constraints as local development.
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          # CI-only password for a throwaway container. Not used anywhere else.
+          MSSQL_SA_PASSWORD: "RaceDay_Ci_2026!"
+        ports:
+          - 1433:1433
+
+    env:
+      RACEDAY_TEST_CONNECTION: "Server=localhost,1433;User Id=sa;Password=RaceDay_Ci_2026!;TrustServerCertificate=True;"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check repository structure
+        run: |
+          test -f RaceDay.slnx
+          test -f src/RaceDay.Api/RaceDay.Api.csproj
+          test -f tests/RaceDay.Api.Tests/RaceDay.Api.Tests.csproj
+          test -d docs
+          test -f README.md
+          echo "Repository structure is valid."
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore RaceDay.slnx
+
+      - name: Build
+        run: dotnet build RaceDay.slnx --configuration Release --no-restore
+
+      - name: Run unit and API tests
+        run: dotnet test RaceDay.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/TestResults/*.trx"
+          if-no-files-found: ignore
