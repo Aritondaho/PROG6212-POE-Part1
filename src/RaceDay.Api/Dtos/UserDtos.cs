@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using RaceDay.Api.Models;
 
 namespace RaceDay.Api.Dtos;
 
@@ -10,7 +11,18 @@ public record UserProfileResponse(
     string Role,
     string? OrganisationName,
     string? ContactNumber,
-    DateOnly? DateOfBirth);
+    DateOnly? DateOfBirth)
+{
+    /// <summary>Builds the profile from a user whose Organiser or Participant navigation is loaded.</summary>
+    public static UserProfileResponse FromUser(User user) => new(
+        user.UserID,
+        user.Email,
+        user.FullName,
+        user.Role,
+        user.Organiser?.OrganisationName,
+        user.Organiser?.ContactNumber,
+        user.Participant?.DateOfBirth);
+}
 
 /// <summary>
 /// Body for <c>PUT /api/users/profile</c>. OrganisationName and ContactNumber apply only to Organisers;
