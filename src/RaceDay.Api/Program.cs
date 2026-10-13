@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using RaceDay.Api.Data;
 using RaceDay.Api.Models;
 using RaceDay.Api.Security;
@@ -9,6 +10,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
+builder.Services.AddEndpointsApiExplorer();
+
+// Swagger UI documents every controller action. Summaries, remarks and response types come from the XML comments and attributes.
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "RaceDay API",
+        Version = "v1",
+        Description = "Race event management API for road running, walking and cycling events in South Africa. " +
+                      "Sign in with POST /api/auth/login first. The session cookie is then sent automatically " +
+                      "by Swagger UI, so protected endpoints can be tested straight from the page.",
+    });
+
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, $"{typeof(Program).Assembly.GetName().Name}.xml");
+    options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+});
 
 builder.Services.AddDbContext<RaceDayDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -41,6 +59,11 @@ if (!app.Environment.IsEnvironment("Testing"))
 
 app.UseStaticFiles();
 app.UseSession();
+
+app.UseSwagger();
+app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "RaceDay API v1"));
+
+app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 app.MapControllers();
 
 // Create or update the schema from the migrations, then load sample data in Development.
