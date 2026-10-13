@@ -90,6 +90,60 @@ public class EnrolmentsController(RaceDayDbContext db) : RaceDayControllerBase
         return StatusCode(StatusCodes.Status201Created, EnrolmentResponse.FromEnrolment(enrolment));
     }
 
+    /// <summary>Lists every enrolment for one event. Only the Organiser who owns the event can see them.</summary>
+    [HttpGet("events/{eventId:int}/enrolments")]
+    [SessionAuthorize(UserRoles.Organiser)]
+    [ProducesResponseType<IReadOnlyList<EnrolmentResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<EnrolmentResponse>>> GetEventEnrolments(int eventId)
+    {
+        var (_, failure) = await LoadOwnedEventAsync(db, eventId);
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        var enrolments = await EnrolmentsWithDetails()
+            .Where(en => en.EventID == eventId)
+            .OrderBy(en => en.Participant.User.FullName)
+            .ToListAsync();
+
+        return Ok(enrolments.Select(EnrolmentResponse.FromEnrolment).ToList());
+    }
+
+    /// <summary>Changes an enrolment's status to Pending, Confirmed or Cancelled. Only the event's Organiser can do this.</summary>
+    [HttpPut("enrolments/{id:int}/status")]
+    [SessionAuthorize(UserRoles.Organiser)]
+    [ProducesResponseType<EnrolmentResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<EnrolmentResponse>> UpdateStatus(int id, [FromBody] UpdateEnrolmentStatusRequest request)
+    {
+        var enrolment = await EnrolmentsWithDetails().FirstOrDefaultAsync(en => en.EnrolmentID == id);
+        if (enrolment is null)
+        {
+            return Problem(detail: $"Enrolment {id} was not found.", statusCode: StatusCodes.Status404NotFound);
+        }
+
+        if (enrolment.Event.Organiser.UserID != CurrentUserId)
+        {
+            return Problem(detail: "You can only manage enrolments for events that you created.", statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        var status = request.Status.Trim();
+        if (!EnrolmentStatuses.All.Contains(status, StringComparer.Ordinal))
+        {
+            return Problem(detail: "status must be Pending, Confirmed or Cancelled.", statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        enrolment.Status = status;
+        await db.SaveChangesAsync();
+
+        return Ok(EnrolmentResponse.FromEnrolment(enrolment));
+    }
+
     /// <summary>Enrolments with the participant, event and category loaded, ready for EnrolmentResponse.</summary>
     private IQueryable<Enrolment> EnrolmentsWithDetails() => db.Enrolments
         .Include(en => en.Participant).ThenInclude(p => p.User)
