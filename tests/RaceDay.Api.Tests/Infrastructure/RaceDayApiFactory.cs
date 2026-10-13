@@ -37,15 +37,22 @@ public sealed class RaceDayApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("ConnectionStrings:DefaultConnection", DatabaseConnectionString);
     }
 
-    protected override void Dispose(bool disposing)
+    // xUnit disposes class fixtures asynchronously, so the database is dropped here, while the host is still alive.
+    public override async ValueTask DisposeAsync()
     {
-        if (disposing && Server is not null)
+        DropTestDatabase();
+        await base.DisposeAsync();
+    }
+
+    private void DropTestDatabase()
+    {
+        if (Server is null)
         {
-            using var scope = Services.CreateScope();
-            scope.ServiceProvider.GetRequiredService<RaceDayDbContext>().Database.EnsureDeleted();
+            return;
         }
 
-        base.Dispose(disposing);
+        using var scope = Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<RaceDayDbContext>().Database.EnsureDeleted();
     }
 
     /// <summary>A SQL Server container can take a while to accept logins, so retry for up to a minute.</summary>
