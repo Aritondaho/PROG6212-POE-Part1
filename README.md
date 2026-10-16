@@ -265,7 +265,7 @@ The workflow `.github/workflows/part2-api-ci.yml` runs on every push and pull re
 ## Video Presentation
 
 > **TODO:** add the unlisted YouTube link for the Part 2 walkthrough (running API, code structure, endpoints, authentication and unit tests):
-> **https://youtu.be/XXXXXXXXXXX**
+> https://youtu.be/Mka5TaPC_iY
 
 ---
 
