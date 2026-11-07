@@ -1,0 +1,108 @@
+@model List<OrganiserEventSummary>
+@{
+    var user = Context.GetCurrentUser()!;
+    var upcoming = Model.Where(s => Ui.IsUpcoming(s.Event.Date)).OrderBy(s => s.Event.Date).ToList();
+    var next = upcoming.FirstOrDefault();
+    var totalEnrolments = Model.Sum(s => s.EnrolmentCount);
+    var awaiting = Model.Sum(s => s.EnrolmentCount - s.ConfirmedCount);
+}
+
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">@(Model.FirstOrDefault()?.Event.OrganisationName ?? "Organiser")</div>
+        <h1>Welcome, @user.FullName.Split(' ')[0]</h1>
+        <p class="rd-muted mb-0">Here's how your events are shaping up.</p>
+    </div>
+    <a class="btn btn-rd-primary" asp-controller="ManageEvents" asp-action="Create"><i class="bi bi-plus-lg"></i> Create event</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="rd-card rd-stat">
+            <div class="rd-stat-icon"><i class="bi bi-calendar-event"></i></div>
+            <div><div class="rd-stat-value">@Model.Count</div><div class="rd-stat-label">Events created</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="rd-card rd-stat">
+            <div class="rd-stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div><div class="rd-stat-value">@totalEnrolments</div><div class="rd-stat-label">Total enrolments</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="rd-card rd-stat">
+            <div class="rd-stat-icon"><i class="bi bi-calendar2-week"></i></div>
+            <div><div class="rd-stat-value">@upcoming.Count</div><div class="rd-stat-label">Upcoming events</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="rd-card rd-stat">
+            <div class="rd-stat-icon" style="background:var(--rd-pending-bg);color:var(--rd-pending)"><i class="bi bi-hourglass-split"></i></div>
+            <div><div class="rd-stat-value">@awaiting</div><div class="rd-stat-label">Entries to confirm</div></div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="rd-card rd-empty">
+        <i class="bi bi-megaphone"></i>
+        <h3>Create your first event</h3>
+        <p>Add the details, upload a banner and set up categories. Participants can enter as soon as it's live.</p>
+        <a class="btn btn-rd-primary" asp-controller="ManageEvents" asp-action="Create">Create event</a>
+    </div>
+}
+else
+{
+    @if (next is not null)
+    {
+        <div class="rd-card rd-card-body mb-4 d-flex flex-wrap align-items-center gap-3" style="border-left: 6px solid var(--rd-orange);">
+            <div class="rd-stat-icon"><i class="bi bi-flag-fill"></i></div>
+            <div class="flex-grow-1">
+                <div class="rd-eyebrow mb-0">Next up · @Ui.Countdown(next.Event.Date)</div>
+                <h2 class="h3 mb-0">@next.Event.Name</h2>
+                <div class="rd-meta"><span><i class="bi bi-calendar-event-fill"></i>@Ui.DateTime(next.Event.Date)</span><span><i class="bi bi-geo-alt-fill"></i>@next.Event.Location</span></div>
+            </div>
+            <div class="text-end">
+                <div class="rd-stat-value">@next.EnrolmentCount</div>
+                <div class="rd-stat-label">entered so far</div>
+            </div>
+            <a class="btn btn-rd-dark" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@next.Event.EventID">View enrolments</a>
+        </div>
+    }
+
+    <div class="rd-card">
+        <div class="rd-card-body pb-2 d-flex justify-content-between align-items-center">
+            <h2 class="h3 mb-0">Your events</h2>
+            <a class="small" asp-controller="ManageEvents" asp-action="Index">Manage all events</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table rd-table">
+                <thead>
+                    <tr><th>Event</th><th>Date</th><th>Type</th><th class="text-center">Enrolments</th><th class="text-center">Confirmed</th><th class="text-center">Categories</th><th class="text-center">Results</th><th class="text-end">Manage</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.OrderBy(s => Ui.IsUpcoming(s.Event.Date) ? 0 : 1).ThenBy(s => s.Event.Date))
+                    {
+                        var isUpcoming = Ui.IsUpcoming(s.Event.Date);
+                        <tr>
+                            <td class="fw-semibold">@s.Event.Name<span class="d-block small rd-muted fw-normal">@s.Event.Location</span></td>
+                            <td>@Ui.Date(s.Event.Date)<span class="d-block small @(isUpcoming ? "text-success fw-semibold" : "rd-muted")">@Ui.Countdown(s.Event.Date)</span></td>
+                            <td><span class="@Ui.EventTypeClass(s.Event.EventType)"><i class="bi @Ui.EventTypeIcon(s.Event.EventType)"></i>@s.Event.EventType</span></td>
+                            <td class="text-center fw-bold">@s.EnrolmentCount</td>
+                            <td class="text-center">@s.ConfirmedCount</td>
+                            <td class="text-center">@s.CategoryCount</td>
+                            <td class="text-center">@s.ResultCount</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-rd-outline" asp-controller="ManageEvents" asp-action="Edit" asp-route-id="@s.Event.EventID" title="Edit event"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-sm btn-rd-outline" asp-controller="Categories" asp-action="Index" asp-route-eventId="@s.Event.EventID" title="Categories"><i class="bi bi-tags"></i></a>
+                                <a class="btn btn-sm btn-rd-outline" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@s.Event.EventID" title="Enrolments"><i class="bi bi-people"></i></a>
+                                <a class="btn btn-sm btn-rd-outline" asp-controller="Results" asp-action="Index" asp-route-eventId="@s.Event.EventID" title="Results"><i class="bi bi-trophy"></i></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
