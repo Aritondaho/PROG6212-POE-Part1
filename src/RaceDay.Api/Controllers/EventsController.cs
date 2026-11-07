@@ -12,7 +12,7 @@ namespace RaceDay.Api.Controllers;
 [ApiController]
 [Route("api/events")]
 [Produces("application/json")]
-public class EventsController(RaceDayDbContext db, IBannerStorage bannerStorage) : RaceDayControllerBase
+public class EventsController(RaceDayDbContext db, IImageStorage imageStorage) : RaceDayControllerBase
 {
     /// <summary>Lists events. Anyone can call this. Use the optional filters to narrow the list.</summary>
     /// <param name="type">Only events of this type: Run, Walk or Cycle.</param>
@@ -194,18 +194,12 @@ public class EventsController(RaceDayDbContext db, IBannerStorage bannerStorage)
             return failure;
         }
 
-        var file = form.File;
-        if (!BannerImageRules.ExtensionsByContentType.ContainsKey(file.ContentType.ToLowerInvariant()))
+        if (ImageRules.Validate(form.File, "Banner") is { } imageError)
         {
-            return Problem(detail: "Banner must be a JPEG, PNG or WebP image.", statusCode: StatusCodes.Status400BadRequest);
+            return Problem(detail: imageError, statusCode: StatusCodes.Status400BadRequest);
         }
 
-        if (file.Length == 0 || file.Length > BannerImageRules.MaxBytes)
-        {
-            return Problem(detail: "Banner must be between 1 byte and 5 MB.", statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        var imageUrl = await bannerStorage.SaveAsync(file, HttpContext.RequestAborted);
+        var imageUrl = await imageStorage.SaveAsync(form.File, ImageFolders.Banners, HttpContext.RequestAborted);
 
         evt!.BannerImageURL = imageUrl;
         await db.SaveChangesAsync();

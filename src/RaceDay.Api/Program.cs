@@ -34,8 +34,8 @@ builder.Services.AddDbContext<RaceDayDbContext>(options =>
 // PBKDF2 password hashing from ASP.NET Core Identity. The hasher is stateless, so a singleton is safe.
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 
-// Banner images are stored locally in Part 2. Part 3 swaps this for Azure Blob Storage.
-builder.Services.AddSingleton<IBannerStorage, LocalBannerStorage>();
+// Uploaded images (event banners and profile pictures) are stored on the API's own disk for now.
+builder.Services.AddSingleton<IImageStorage, LocalImageStorage>();
 
 // Server-side session state. The session stores only the user's ID and role, keyed by an opaque cookie.
 builder.Services.AddDistributedMemoryCache();
