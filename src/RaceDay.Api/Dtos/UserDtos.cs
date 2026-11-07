@@ -49,3 +49,10 @@ public class UpdateProfileRequest
 
     public DateOnly? DateOfBirth { get; set; }
 }
+
+/// <summary>Form body for <c>POST /api/users/profile/picture</c>. The file must be a JPEG, PNG or WebP image of up to 5 MB.</summary>
+public class ImageUploadRequest
+{
+    [Required]
+    public IFormFile File { get; set; } = null!;
+}
