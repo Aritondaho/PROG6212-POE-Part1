@@ -1,0 +1,26 @@
+@model OrganiserEventSummary
+
+<div class="rd-auth">
+    <div class="rd-card rd-card-body p-4 p-md-5">
+        <div class="rd-eyebrow text-danger">Delete event</div>
+        <h1 class="h2">Delete @Model.Event.Name?</h1>
+        <p class="rd-muted">@Ui.DateTime(Model.Event.Date) · @Model.Event.Location</p>
+
+        @if (Model.EnrolmentCount > 0)
+        {
+            <div class="alert alert-warning d-flex gap-2">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>@Model.EnrolmentCount participant@(Model.EnrolmentCount == 1 ? " has" : "s have") entered this event. Events with entries can't be deleted, so their results stay on record. Cancel the entries first.</div>
+            </div>
+        }
+        else
+        {
+            <p>This removes the event and its @Model.CategoryCount categor@(Model.CategoryCount == 1 ? "y" : "ies"). It can't be undone.</p>
+        }
+
+        <form asp-action="Delete" asp-route-id="@Model.Event.EventID" method="post" class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-danger" disabled="@(Model.EnrolmentCount > 0)">Delete event</button>
+            <a class="btn btn-rd-outline" asp-action="Index">Keep it</a>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,60 @@
+@model List<OrganiserEventSummary>
+
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">Organiser</div>
+        <h1>Manage events</h1>
+    </div>
+    <a class="btn btn-rd-primary" asp-action="Create"><i class="bi bi-plus-lg"></i> Create event</a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="rd-card rd-empty">
+        <i class="bi bi-calendar-plus"></i>
+        <h3>No events yet</h3>
+        <p>Create an event to start taking entries.</p>
+        <a class="btn btn-rd-primary" asp-action="Create">Create event</a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var s in Model.OrderByDescending(s => Ui.IsUpcoming(s.Event.Date)).ThenBy(s => s.Event.Date))
+        {
+            var evt = s.Event;
+            var banner = Images.Resolve(evt.BannerImageUrl);
+            <div class="col-md-6 col-xl-4">
+                <article class="rd-card rd-event-card">
+                    <div class="rd-banner @(banner is null ? "rd-banner-placeholder" : "")" style="@(banner is null ? "" : $"background-image:url('{banner}')")">
+                        @if (banner is null)
+                        {
+                            <i class="bi @Ui.EventTypeIcon(evt.EventType)"></i>
+                        }
+                        <span class="rd-date-chip"><span class="day">@evt.Date.Day</span><span class="month">@evt.Date.ToString("MMM")</span></span>
+                    </div>
+                    <div class="rd-card-body">
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span class="@Ui.EventTypeClass(evt.EventType)"><i class="bi @Ui.EventTypeIcon(evt.EventType)"></i>@evt.EventType</span>
+                            <span class="rd-tag">@Ui.Distance(evt.Distance)</span>
+                            <span class="rd-tag">@Ui.Countdown(evt.Date)</span>
+                        </div>
+                        <h3>@evt.Name</h3>
+                        <div class="rd-meta mb-3">
+                            <span><i class="bi bi-geo-alt-fill"></i>@evt.Location</span>
+                            <span><i class="bi bi-people-fill"></i>@s.EnrolmentCount entered</span>
+                            <span><i class="bi bi-tags-fill"></i>@s.CategoryCount categories</span>
+                        </div>
+                        <div class="mt-auto d-flex flex-wrap gap-2">
+                            <a class="btn btn-sm btn-rd-dark" asp-action="Edit" asp-route-id="@evt.EventID"><i class="bi bi-pencil"></i> Edit</a>
+                            <a class="btn btn-sm btn-rd-outline" asp-controller="Categories" asp-action="Index" asp-route-eventId="@evt.EventID">Categories</a>
+                            <a class="btn btn-sm btn-rd-outline" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@evt.EventID">Enrolments</a>
+                            <a class="btn btn-sm btn-rd-outline" asp-controller="Results" asp-action="Index" asp-route-eventId="@evt.EventID">Results</a>
+                            <a class="btn btn-sm btn-outline-danger ms-auto" asp-action="Delete" asp-route-id="@evt.EventID" title="Delete event"><i class="bi bi-trash"></i></a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+}

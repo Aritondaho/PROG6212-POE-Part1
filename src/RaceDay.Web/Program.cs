@@ -1,3 +1,5 @@
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using RaceDay.Web.Infrastructure;
 using RaceDay.Web.Services;
@@ -43,6 +45,19 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// South African formatting, but with "." as the decimal separator so distances such as 21.1 bind the same way
+// on every machine and in Docker (Windows' en-ZA uses "," by default, which the browser's number input never sends).
+var raceDayCulture = (CultureInfo)CultureInfo.GetCultureInfo("en-ZA").Clone();
+raceDayCulture.NumberFormat.NumberDecimalSeparator = ".";
+raceDayCulture.NumberFormat.CurrencyDecimalSeparator = ".";
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(raceDayCulture),
+    SupportedCultures = [raceDayCulture],
+    SupportedUICultures = [raceDayCulture],
+    RequestCultureProviders = [],
+});
 app.UseRouting();
 
 app.UseSession();
