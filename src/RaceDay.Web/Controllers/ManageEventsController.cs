@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RaceDay.Web.Infrastructure;
 using RaceDay.Web.Models;
 using RaceDay.Web.Models.Api;
@@ -16,7 +16,7 @@ public class ManageEventsController(RaceDayApiClient api) : OrganiserEventContro
     public async Task<IActionResult> Index(CancellationToken ct)
     {
         ViewData["Title"] = "Manage events";
-        return View(await api.GetMyEventsAsync(ct));
+        return View(await Api.GetMyEventsAsync(ct));
     }
 
     [HttpGet]
@@ -40,7 +40,7 @@ public class ManageEventsController(RaceDayApiClient api) : OrganiserEventContro
         EventItem created;
         try
         {
-            created = await api.CreateEventAsync(model.ToBody(), ct);
+            created = await Api.CreateEventAsync(model.ToBody(), ct);
         }
         catch (ApiException ex)
         {
@@ -82,7 +82,7 @@ public class ManageEventsController(RaceDayApiClient api) : OrganiserEventContro
         {
             try
             {
-                await api.UpdateEventAsync(id, model.ToBody(), ct);
+                await Api.UpdateEventAsync(id, model.ToBody(), ct);
 
                 if (!await TryUploadBannerAsync(id, model.Banner, ct))
                 {
@@ -128,7 +128,7 @@ public class ManageEventsController(RaceDayApiClient api) : OrganiserEventContro
     {
         try
         {
-            await api.DeleteEventAsync(id, ct);
+            await Api.DeleteEventAsync(id, ct);
             FlashSuccess("Event deleted.");
         }
         catch (ApiException ex) when (ex is not ApiUnauthorizedException)
@@ -150,7 +150,7 @@ public class ManageEventsController(RaceDayApiClient api) : OrganiserEventContro
 
         try
         {
-            await api.UploadBannerAsync(eventId, banner, ct);
+            await Api.UploadBannerAsync(eventId, banner, ct);
             return true;
         }
         catch (ApiException ex) when (ex is not ApiUnauthorizedException)
