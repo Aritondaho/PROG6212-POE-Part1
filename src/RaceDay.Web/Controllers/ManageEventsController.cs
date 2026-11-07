@@ -10,8 +10,7 @@ namespace RaceDay.Web.Controllers;
 /// Organiser event management: create, edit and delete events and upload a banner image.
 /// The API checks ownership on every change; the MVC side only lists the organiser's own events.
 /// </summary>
-[RequireRole(RaceDayValues.Organiser)]
-public class ManageEventsController(RaceDayApiClient api) : RaceDayController
+public class ManageEventsController(RaceDayApiClient api) : OrganiserEventControllerBase(api)
 {
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken ct)
@@ -62,14 +61,15 @@ public class ManageEventsController(RaceDayApiClient api) : RaceDayController
     [HttpGet]
     public async Task<IActionResult> Edit(int id, CancellationToken ct)
     {
-        var evt = await FindOwnEventAsync(id, ct);
-        if (evt is null)
+        var summary = await FindOwnEventAsync(id, ct);
+        if (summary is null)
         {
             return NotFoundPage();
         }
 
-        ViewData["Title"] = $"Edit {evt.Name}";
-        return View("Form", EventFormViewModel.From(evt));
+        ViewData["Title"] = $"Edit {summary.Event.Name}";
+        ViewData["Summary"] = summary;
+        return View("Form", EventFormViewModel.From(summary.Event));
     }
 
     [HttpPost]
@@ -78,34 +78,41 @@ public class ManageEventsController(RaceDayApiClient api) : RaceDayController
     {
         ViewData["Title"] = $"Edit {model.Name}";
         model.EventId = id;
-        if (!ModelState.IsValid)
+        if (ModelState.IsValid)
         {
-            return View("Form", model);
+            try
+            {
+                await api.UpdateEventAsync(id, model.ToBody(), ct);
+
+                if (!await TryUploadBannerAsync(id, model.Banner, ct))
+                {
+                    return RedirectToAction(nameof(Edit), new { id });
+                }
+
+                FlashSuccess("Event updated.");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (ApiException ex)
+            {
+                AddApiError(ex);
+            }
         }
 
-        try
+        var summary = await FindOwnEventAsync(id, ct);
+        if (summary is null)
         {
-            await api.UpdateEventAsync(id, model.ToBody(), ct);
-        }
-        catch (ApiException ex)
-        {
-            AddApiError(ex);
-            return View("Form", model);
+            return NotFoundPage();
         }
 
-        if (!await TryUploadBannerAsync(id, model.Banner, ct))
-        {
-            return RedirectToAction(nameof(Edit), new { id });
-        }
-
-        FlashSuccess("Event updated.");
-        return RedirectToAction(nameof(Index));
+        ViewData["Summary"] = summary;
+        model.CurrentBannerUrl = summary.Event.BannerImageUrl;
+        return View("Form", model);
     }
 
     [HttpGet]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        var summary = (await api.GetMyEventsAsync(ct)).FirstOrDefault(s => s.Event.EventID == id);
+        var summary = await FindOwnEventAsync(id, ct);
         if (summary is null)
         {
             return NotFoundPage();
@@ -151,14 +158,5 @@ public class ManageEventsController(RaceDayApiClient api) : RaceDayController
             FlashError($"The event was saved, but the banner was not uploaded: {ex.Message}");
             return false;
         }
-    }
-
-    private async Task<EventItem?> FindOwnEventAsync(int id, CancellationToken ct) =>
-        (await api.GetMyEventsAsync(ct)).FirstOrDefault(s => s.Event.EventID == id)?.Event;
-
-    private ViewResult NotFoundPage()
-    {
-        Response.StatusCode = StatusCodes.Status404NotFound;
-        return View("NotFound");
     }
 }

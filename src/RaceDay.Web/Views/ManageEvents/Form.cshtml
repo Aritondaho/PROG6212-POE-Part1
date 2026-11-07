@@ -1,8 +1,15 @@
 @model EventFormViewModel
 @{
     var banner = Images.Resolve(Model.CurrentBannerUrl);
+    var summary = ViewData["Summary"] as OrganiserEventSummary;
 }
 
+@if (summary is not null)
+{
+    <partial name="_OrganiserEventTabs" model='(summary, "Edit")' />
+}
+else
+{
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb small mb-0">
         <li class="breadcrumb-item"><a asp-action="Index">Manage events</a></li>
@@ -13,16 +20,10 @@
 <div class="rd-page-header">
     <div>
         <div class="rd-eyebrow">Organiser</div>
-        <h1>@(Model.IsEdit ? "Edit event" : "Create event")</h1>
+        <h1>Create event</h1>
     </div>
-    @if (Model.IsEdit)
-    {
-        <div class="d-flex gap-2">
-            <a class="btn btn-rd-outline" asp-controller="Categories" asp-action="Index" asp-route-eventId="@Model.EventId">Categories</a>
-            <a class="btn btn-rd-outline" asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId">View public page</a>
-        </div>
-    }
 </div>
+}
 
 <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.EventId" method="post" enctype="multipart/form-data" novalidate>
     <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
@@ -87,9 +88,13 @@
         </div>
     </div>
 
-    <div class="d-flex gap-2 mt-4">
+    <div class="d-flex flex-wrap gap-2 mt-4">
         <button type="submit" class="btn btn-rd-primary px-4">@(Model.IsEdit ? "Save changes" : "Create event")</button>
         <a class="btn btn-rd-outline" asp-action="Index">Cancel</a>
+        @if (Model.IsEdit)
+        {
+            <a class="btn btn-rd-outline ms-auto" asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId"><i class="bi bi-box-arrow-up-right"></i> View public page</a>
+        }
     </div>
 </form>
 

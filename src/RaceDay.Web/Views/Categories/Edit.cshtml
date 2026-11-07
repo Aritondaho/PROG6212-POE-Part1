@@ -1,0 +1,46 @@
+@model CategoryFormViewModel
+@{
+    var summary = (OrganiserEventSummary)ViewData["Summary"]!;
+    var eventId = summary.Event.EventID;
+}
+
+<partial name="_OrganiserEventTabs" model='(summary, "Categories")' />
+
+<div class="rd-auth">
+    <div class="rd-card rd-card-body">
+        <h2 class="h3 mb-3">Edit category</h2>
+        <form asp-action="Edit" asp-route-eventId="@eventId" asp-route-id="@Model.CategoryId" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name"></span>
+            </div>
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label asp-for="MinAge" class="form-label"></label>
+                    <input asp-for="MinAge" type="number" min="0" max="150" class="form-control" />
+                    <span asp-validation-for="MinAge"></span>
+                </div>
+                <div class="col-6">
+                    <label asp-for="MaxAge" class="form-label"></label>
+                    <input asp-for="MaxAge" type="number" min="0" max="150" class="form-control" />
+                    <span asp-validation-for="MaxAge"></span>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description"></span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-rd-primary px-4">Save category</button>
+                <a class="btn btn-rd-outline" asp-action="Index" asp-route-eventId="@eventId">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,25 @@
+@model (OrganiserEventSummary Summary, string Active)
+@{
+    var evt = Model.Summary.Event;
+    string Tab(string name) => Model.Active == name ? "active" : "";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a asp-controller="Organiser" asp-action="Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-controller="ManageEvents" asp-action="Index">Manage events</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@evt.Name</li>
+    </ol>
+</nav>
+<div class="rd-page-header mb-3">
+    <div>
+        <div class="rd-eyebrow">@Ui.DateTime(evt.Date) · @evt.Location</div>
+        <h1>@evt.Name</h1>
+    </div>
+    <span class="@Ui.EventTypeClass(evt.EventType)"><i class="bi @Ui.EventTypeIcon(evt.EventType)"></i>@evt.EventType · @Ui.Distance(evt.Distance)</span>
+</div>
+<ul class="nav nav-pills mb-4 gap-1">
+    <li class="nav-item"><a class="nav-link @Tab("Edit")" asp-controller="ManageEvents" asp-action="Edit" asp-route-id="@evt.EventID"><i class="bi bi-pencil"></i> Details</a></li>
+    <li class="nav-item"><a class="nav-link @Tab("Categories")" asp-controller="Categories" asp-action="Index" asp-route-eventId="@evt.EventID"><i class="bi bi-tags"></i> Categories <span class="badge text-bg-light">@Model.Summary.CategoryCount</span></a></li>
+    <li class="nav-item"><a class="nav-link @Tab("Enrolments")" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@evt.EventID"><i class="bi bi-people"></i> Enrolments <span class="badge text-bg-light">@Model.Summary.EnrolmentCount</span></a></li>
+    <li class="nav-item"><a class="nav-link @Tab("Results")" asp-controller="Results" asp-action="Index" asp-route-eventId="@evt.EventID"><i class="bi bi-trophy"></i> Results <span class="badge text-bg-light">@Model.Summary.ResultCount</span></a></li>
+</ul>
