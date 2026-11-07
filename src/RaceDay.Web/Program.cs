@@ -4,7 +4,8 @@ using RaceDay.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+// API failures that a page does not handle itself become friendly pages (see ApiExceptionFilter).
+builder.Services.AddControllersWithViews(options => options.Filters.Add<ApiExceptionFilter>());
 
 // The MVC app's own session holds the signed-in user's ID, role and name, plus the API session cookie.
 builder.Services.AddDistributedMemoryCache();
