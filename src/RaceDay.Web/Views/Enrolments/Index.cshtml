@@ -1,0 +1,103 @@
+@model EnrolmentsPageViewModel
+@{
+    var eventId = Model.Summary.Event.EventID;
+    var visible = Model.Visible.ToList();
+}
+
+<partial name="_OrganiserEventTabs" model='(Model.Summary, "Enrolments")' />
+
+<div class="row g-3 mb-4">
+    @foreach (var status in RaceDayValues.EnrolmentStatuses)
+    {
+        <div class="col-sm-4">
+            <a class="rd-card rd-stat text-decoration-none @(Model.StatusFilter == status ? "border-2 border-dark" : "")"
+               asp-action="Index" asp-route-eventId="@eventId" asp-route-status="@(Model.StatusFilter == status ? null : status)">
+                <span class="@Ui.StatusBadgeClass(status) fs-6"><i class="bi @Ui.StatusIcon(status)"></i></span>
+                <div><div class="rd-stat-value">@Model.Count(status)</div><div class="rd-stat-label">@status</div></div>
+            </a>
+        </div>
+    }
+</div>
+
+<div class="rd-card">
+    <div class="rd-card-body pb-3 d-flex flex-wrap gap-2 align-items-end justify-content-between">
+        <div>
+            <h2 class="h3 mb-0">Participants</h2>
+            <span class="rd-muted small">@visible.Count of @Model.All.Count shown</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-end">
+            <form method="get" asp-action="Index" class="d-flex gap-2 align-items-end">
+                <input type="hidden" name="eventId" value="@eventId" />
+                <div>
+                    <label class="form-label small mb-1" for="status">Status</label>
+                    <select class="form-select form-select-sm" id="status" name="status" onchange="this.form.submit()">
+                        <option value="">All statuses</option>
+                        @foreach (var s in RaceDayValues.EnrolmentStatuses)
+                        {
+                            <option value="@s" selected="@(Model.StatusFilter == s)">@s</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label small mb-1" for="category">Category</label>
+                    <select class="form-select form-select-sm" id="category" name="category" onchange="this.form.submit()">
+                        <option value="">All categories</option>
+                        @foreach (var c in Model.CategoryNames)
+                        {
+                            <option value="@c" selected="@(Model.CategoryFilter == c)">@c</option>
+                        }
+                    </select>
+                </div>
+                <noscript><button class="btn btn-sm btn-rd-outline" type="submit">Apply</button></noscript>
+            </form>
+            @if (Model.Count("Pending") > 0)
+            {
+                <form asp-action="ConfirmAllPending" asp-route-eventId="@eventId" method="post">
+                    <button type="submit" class="btn btn-sm btn-rd-primary"><i class="bi bi-check2-all"></i> Confirm all pending</button>
+                </form>
+            }
+        </div>
+    </div>
+
+    @if (Model.All.Count == 0)
+    {
+        <div class="rd-empty pt-0">
+            <i class="bi bi-people"></i>
+            <p class="mb-0">Nobody has entered yet. Entries appear here as soon as participants enrol.</p>
+        </div>
+    }
+    else if (visible.Count == 0)
+    {
+        <p class="rd-muted px-4 pb-4 mb-0">No entries match these filters.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table rd-table">
+                <thead><tr><th>Participant</th><th>Category</th><th>Entered on</th><th>Status</th><th class="text-end">Change status</th></tr></thead>
+                <tbody>
+                    @foreach (var en in visible)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@en.ParticipantName</td>
+                            <td>@en.CategoryName</td>
+                            <td class="rd-muted">@Ui.DateTime(en.RegistrationDate)</td>
+                            <td><span class="@Ui.StatusBadgeClass(en.Status)"><i class="bi @Ui.StatusIcon(en.Status)"></i>@en.Status</span></td>
+                            <td class="text-end text-nowrap">
+                                @foreach (var target in RaceDayValues.EnrolmentStatuses.Where(s => s != en.Status))
+                                {
+                                    <form asp-action="UpdateStatus" asp-route-eventId="@eventId" asp-route-id="@en.EnrolmentID" method="post" class="d-inline">
+                                        <input type="hidden" name="status" value="@target" />
+                                        <button type="submit" class="btn btn-sm @(target == "Confirmed" ? "btn-success" : target == "Cancelled" ? "btn-outline-danger" : "btn-outline-warning")">
+                                            <i class="bi @Ui.StatusIcon(target)"></i> @(target == "Confirmed" ? "Confirm" : target == "Cancelled" ? "Cancel" : "Set pending")
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
