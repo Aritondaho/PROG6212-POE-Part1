@@ -1,0 +1,121 @@
+@model EventDetailsViewModel
+@{
+    var user = Context.GetCurrentUser();
+    var evt = Model.Event;
+    var banner = Images.Resolve(evt.BannerImageUrl);
+    var canEnter = user?.IsParticipant == true && Model.MyEnrolment is null && Model.IsUpcoming && Model.Categories.Count > 0;
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a asp-action="Index">Events</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@evt.Name</li>
+    </ol>
+</nav>
+
+<div class="rd-banner rd-banner-lg mb-4 @(banner is null ? "rd-banner-placeholder" : "")"
+     style="@(banner is null ? "" : $"background-image:url('{banner}')")" role="img" aria-label="@evt.Name banner">
+    @if (banner is null)
+    {
+        <i class="bi @Ui.EventTypeIcon(evt.EventType)"></i>
+    }
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <span class="@Ui.EventTypeClass(evt.EventType)"><i class="bi @Ui.EventTypeIcon(evt.EventType)"></i>@evt.EventType</span>
+            <span class="rd-tag">@Ui.Distance(evt.Distance)</span>
+            <span class="rd-tag"><i class="bi bi-stopwatch"></i>@Ui.Countdown(evt.Date)</span>
+        </div>
+        <h1 class="mb-2">@evt.Name</h1>
+        <div class="rd-meta mb-4">
+            <span><i class="bi bi-calendar-event-fill"></i>@Ui.DateTime(evt.Date)</span>
+            <span><i class="bi bi-geo-alt-fill"></i>@evt.Location</span>
+            <span><i class="bi bi-people-fill"></i>@evt.OrganisationName</span>
+        </div>
+
+        <div class="rd-card rd-card-body mb-4">
+            <h2 class="h3">About this event</h2>
+            <p class="mb-0">@evt.Description</p>
+        </div>
+
+        <div class="rd-card">
+            <div class="rd-card-body pb-2">
+                <h2 class="h3 mb-0">Categories</h2>
+            </div>
+            @if (Model.Categories.Count == 0)
+            {
+                <p class="rd-muted px-4 pb-4 mb-0">The organiser hasn't added categories yet. Check back soon.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table rd-table">
+                        <thead><tr><th>Category</th><th>Ages</th><th>Details</th></tr></thead>
+                        <tbody>
+                            @foreach (var c in Model.Categories)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@c.Name</td>
+                                    <td>@(c.MinAge is null && c.MaxAge is null ? "All ages" : c.MaxAge is null ? $"{c.MinAge}+" : $"{c.MinAge ?? 0}–{c.MaxAge}")</td>
+                                    <td class="rd-muted">@(c.Description ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <aside class="col-lg-4">
+        <div class="rd-card rd-card-body position-sticky" style="top: 1rem;">
+            <div class="rd-eyebrow">Race entry</div>
+            @if (Model.MyEnrolment is { } mine)
+            {
+                <h2 class="h3">You're entered</h2>
+                <p class="mb-2">Category: <strong>@mine.CategoryName</strong></p>
+                <p class="mb-3">Status: <span class="@Ui.StatusBadgeClass(mine.Status)"><i class="bi @Ui.StatusIcon(mine.Status)"></i>@mine.Status</span></p>
+                <a class="btn btn-rd-outline w-100" asp-controller="Participant" asp-action="MyEvents">View my events</a>
+            }
+            else if (!Model.IsUpcoming)
+            {
+                <h2 class="h3">Entries closed</h2>
+                <p class="rd-muted mb-0">This event has already taken place.</p>
+            }
+            else if (user is null)
+            {
+                <h2 class="h3">Ready to race?</h2>
+                <p class="rd-muted">Log in or create a free participant account to enter.</p>
+                <a class="btn btn-rd-primary w-100 mb-2" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Log in to enter</a>
+                <a class="btn btn-rd-outline w-100" asp-controller="Account" asp-action="Register">Create an account</a>
+            }
+            else if (user.IsOrganiser)
+            {
+                <h2 class="h3">Organiser view</h2>
+                <p class="rd-muted mb-0">Organisers can't enter events. Participants see an Enter button here.</p>
+            }
+            else if (canEnter)
+            {
+                <h2 class="h3">Enter this event</h2>
+                <form asp-action="Enter" asp-route-id="@evt.EventID" method="post">
+                    <label class="form-label" for="categoryId">Choose your category</label>
+                    <select class="form-select mb-3" id="categoryId" name="categoryId" required>
+                        <option value="">Select a category&hellip;</option>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <option value="@c.CategoryID">@c.Name</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-rd-primary w-100 py-2"><i class="bi bi-flag-fill"></i> Enter event</button>
+                </form>
+            }
+            else
+            {
+                <h2 class="h3">Entries opening soon</h2>
+                <p class="rd-muted mb-0">You can enter once the organiser adds a category.</p>
+            }
+        </div>
+    </aside>
+</div>

@@ -55,4 +55,62 @@ public class EventsController(RaceDayApiClient api) : RaceDayController
             EnteredEventIds = entered,
         });
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Details(int id, CancellationToken ct)
+    {
+        var model = await LoadDetailsAsync(id, ct);
+        if (model is null)
+        {
+            Response.StatusCode = StatusCodes.Status404NotFound;
+            return View("NotFound");
+        }
+
+        ViewData["Title"] = model.Event.Name;
+        return View(model);
+    }
+
+    /// <summary>Enters the signed-in participant in the event with the chosen category. The API records it immediately as Pending.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [RequireRole(Models.Api.RaceDayValues.Participant)]
+    public async Task<IActionResult> Enter(int id, int? categoryId, CancellationToken ct)
+    {
+        if (categoryId is null)
+        {
+            FlashError("Choose a category before entering.");
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        try
+        {
+            var enrolment = await api.EnrolAsync(id, categoryId.Value, ct);
+            FlashSuccess($"You're entered in {enrolment.EventName} ({enrolment.CategoryName}). Your entry is {enrolment.Status.ToLowerInvariant()} until the organiser confirms it.");
+            return RedirectToAction("MyEvents", "Participant");
+        }
+        catch (ApiException ex) when (ex is not ApiUnauthorizedException)
+        {
+            FlashError(ex.Message);
+            return RedirectToAction(nameof(Details), new { id });
+        }
+    }
+
+    private async Task<EventDetailsViewModel?> LoadDetailsAsync(int id, CancellationToken ct)
+    {
+        var evt = await api.GetEventAsync(id, ct);
+        if (evt is null)
+        {
+            return null;
+        }
+
+        var categories = await api.GetCategoriesAsync(id, ct);
+
+        Models.Api.EnrolmentItem? mine = null;
+        if (CurrentUser?.IsParticipant == true)
+        {
+            mine = (await api.GetEnrolmentsAsync(ct)).FirstOrDefault(en => en.EventID == id);
+        }
+
+        return new EventDetailsViewModel { Event = evt, Categories = categories, MyEnrolment = mine };
+    }
 }

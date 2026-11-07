@@ -41,9 +41,5 @@ public class EventDetailsViewModel
     /// <summary>The signed-in participant's enrolment in this event, if any.</summary>
     public EnrolmentItem? MyEnrolment { get; init; }
 
-    [Display(Name = "Category")]
-    [Required(ErrorMessage = "Choose a category to enter.")]
-    public int? CategoryId { get; set; }
-
     public bool IsUpcoming => Infrastructure.Ui.IsUpcoming(Event.Date);
 }
