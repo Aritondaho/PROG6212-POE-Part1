@@ -38,9 +38,11 @@ builder.Services.AddHttpClient<RaceDayApiClient>((services, client) =>
 
 var app = builder.Build();
 
+// Friendly pages in every environment, so users never see raw exception output or status-code text.
+app.UseExceptionHandler("/Home/Error");
+app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
