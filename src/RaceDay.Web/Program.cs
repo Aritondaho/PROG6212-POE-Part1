@@ -24,6 +24,7 @@ builder.Services.AddHttpContextAccessor();
 // so the shared handler must not keep its own cookie container.
 builder.Services.Configure<RaceDayApiOptions>(builder.Configuration.GetSection(RaceDayApiOptions.SectionName));
 builder.Services.AddTransient<ApiSessionCookieHandler>();
+builder.Services.AddSingleton<ImageUrlResolver>();
 builder.Services.AddHttpClient<RaceDayApiClient>((services, client) =>
     {
         var options = services.GetRequiredService<IOptions<RaceDayApiOptions>>().Value;
