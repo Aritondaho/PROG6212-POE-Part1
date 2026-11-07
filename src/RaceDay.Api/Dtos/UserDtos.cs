@@ -3,7 +3,10 @@ using RaceDay.Api.Models;
 
 namespace RaceDay.Api.Dtos;
 
-/// <summary>The profile returned by register, login and the profile endpoints. Never contains the password hash.</summary>
+/// <summary>
+/// The profile returned by register, login and the profile endpoints. Never contains the password hash.
+/// ProfilePictureUrl is set only for Participants who have uploaded a picture.
+/// </summary>
 public record UserProfileResponse(
     int UserID,
     string Email,
@@ -11,7 +14,8 @@ public record UserProfileResponse(
     string Role,
     string? OrganisationName,
     string? ContactNumber,
-    DateOnly? DateOfBirth)
+    DateOnly? DateOfBirth,
+    string? ProfilePictureUrl)
 {
     /// <summary>Builds the profile from a user whose Organiser or Participant navigation is loaded.</summary>
     public static UserProfileResponse FromUser(User user) => new(
@@ -21,7 +25,8 @@ public record UserProfileResponse(
         user.Role,
         user.Organiser?.OrganisationName,
         user.Organiser?.ContactNumber,
-        user.Participant?.DateOfBirth);
+        user.Participant?.DateOfBirth,
+        user.Participant?.ProfilePictureURL);
 }
 
 /// <summary>
