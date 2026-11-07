@@ -68,3 +68,14 @@ public record EventResponse(
         evt.EventType,
         evt.BannerImageURL);
 }
+
+/// <summary>
+/// One row of the Organiser dashboard. EnrolmentCount excludes cancelled enrolments.
+/// ResultCount is the number of enrolments that already have a recorded result.
+/// </summary>
+public record OrganiserEventSummaryResponse(
+    EventResponse Event,
+    int EnrolmentCount,
+    int ConfirmedCount,
+    int CategoryCount,
+    int ResultCount);

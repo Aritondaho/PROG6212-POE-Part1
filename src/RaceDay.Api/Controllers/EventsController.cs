@@ -57,6 +57,41 @@ public class EventsController(RaceDayDbContext db, IImageStorage imageStorage) :
         return Ok(events.Select(EventResponse.FromEvent).ToList());
     }
 
+    /// <summary>
+    /// Lists the events the signed-in Organiser created, with enrolment, category and result counts.
+    /// Powers the Organiser dashboard in the MVC application.
+    /// </summary>
+    [HttpGet("mine")]
+    [SessionAuthorize(UserRoles.Organiser)]
+    [ProducesResponseType<IReadOnlyList<OrganiserEventSummaryResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<OrganiserEventSummaryResponse>>> GetMyEvents()
+    {
+        var summaries = await db.Events
+            .Where(e => e.Organiser.UserID == CurrentUserId)
+            .OrderBy(e => e.EventDate)
+            .Select(e => new
+            {
+                Event = e,
+                e.Organiser,
+                Enrolments = e.Enrolments.Count(en => en.Status != EnrolmentStatuses.Cancelled),
+                Confirmed = e.Enrolments.Count(en => en.Status == EnrolmentStatuses.Confirmed),
+                Categories = e.Categories.Count,
+                Results = e.Enrolments.Count(en => en.Result != null),
+            })
+            .ToListAsync();
+
+        return Ok(summaries
+            .Select(s => new OrganiserEventSummaryResponse(
+                EventResponse.FromEvent(s.Event),
+                s.Enrolments,
+                s.Confirmed,
+                s.Categories,
+                s.Results))
+            .ToList());
+    }
+
     /// <summary>Returns one event by ID. Anyone can call this.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType<EventResponse>(StatusCodes.Status200OK)]
