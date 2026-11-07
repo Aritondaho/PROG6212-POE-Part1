@@ -1,6 +1,8 @@
-name: Part 2 API CI
+name: RaceDay CI
 
-# Builds the RaceDay API and runs its unit and API tests on every push and pull request.
+# On every push and pull request:
+#  - builds the whole solution (API + MVC web app) and runs the API tests against a real SQL Server
+#  - builds the MVC web app's Docker image, so a broken Dockerfile fails the build too
 on:
   push:
   pull_request:
@@ -31,6 +33,8 @@ jobs:
         run: |
           test -f RaceDay.slnx
           test -f src/RaceDay.Api/RaceDay.Api.csproj
+          test -f src/RaceDay.Web/RaceDay.Web.csproj
+          test -f src/RaceDay.Web/Dockerfile
           test -f tests/RaceDay.Api.Tests/RaceDay.Api.Tests.csproj
           test -d docs
           test -f README.md
@@ -47,6 +51,9 @@ jobs:
       - name: Build
         run: dotnet build RaceDay.slnx --configuration Release --no-restore
 
+      - name: Publish the MVC web app
+        run: dotnet publish src/RaceDay.Web/RaceDay.Web.csproj --configuration Release --no-build --output web-publish
+
       - name: Run unit and API tests
         run: dotnet test RaceDay.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
@@ -57,3 +64,27 @@ jobs:
           name: test-results
           path: "**/TestResults/*.trx"
           if-no-files-found: ignore
+
+  docker-web:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build the MVC Docker image
+        run: docker build --file src/RaceDay.Web/Dockerfile --tag raceday-web:ci .
+
+      - name: Start the container and check it serves pages
+        run: |
+          docker run --detach --name raceday-web --publish 8080:8080 raceday-web:ci
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://localhost:8080/Account/Login > /dev/null; then
+              echo "The MVC container is up and serving the login page."
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs raceday-web
+          exit 1
