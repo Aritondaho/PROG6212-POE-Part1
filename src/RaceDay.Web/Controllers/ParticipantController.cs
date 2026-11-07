@@ -16,4 +16,13 @@ public class ParticipantController(RaceDayApiClient api) : RaceDayController
         var enrolments = await api.GetEnrolmentsAsync(ct);
         return View(enrolments.OrderBy(en => en.EventDate).ToList());
     }
+
+    /// <summary>Race history: every published result for events the participant entered, newest first.</summary>
+    [HttpGet]
+    public async Task<IActionResult> MyResults(CancellationToken ct)
+    {
+        ViewData["Title"] = "My results";
+        var results = await api.GetMyResultsAsync(ct);
+        return View(results.Where(r => r.Status == "Published").OrderByDescending(r => r.EventDate).ToList());
+    }
 }
