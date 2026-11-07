@@ -11,6 +11,8 @@ document.querySelectorAll('input[type="file"][data-preview]').forEach(input => {
         const url = URL.createObjectURL(file);
         if (target.tagName === 'IMG') {
             target.src = url;
+            target.classList.remove('d-none');
+            document.querySelectorAll('[data-initials]').forEach(el => el.remove());
         } else {
             target.style.backgroundImage = `url("${url}")`;
             target.classList.remove('rd-banner-placeholder');

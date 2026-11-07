@@ -1,0 +1,87 @@
+@model ProfileViewModel
+@{
+    var user = Context.GetCurrentUser()!;
+    var picture = Images.Resolve(Model.ProfilePictureUrl);
+}
+
+<div class="rd-page-header">
+    <div>
+        <div class="rd-eyebrow">@Model.Role</div>
+        <h1>My profile</h1>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="rd-card rd-card-body text-center">
+            <img id="avatar-preview" src="@picture" alt="Your profile picture" class="rd-avatar rd-avatar-lg mb-3 @(picture is null ? "d-none" : "")" />
+            @if (picture is null)
+            {
+                <span class="rd-avatar rd-avatar-lg rd-avatar-initials mb-3 mx-auto" style="display:grid" data-initials>@user.Initials</span>
+            }
+            <h2 class="h3 mb-0">@Model.FullName</h2>
+            <p class="rd-muted mb-3">@Model.Email</p>
+
+            @if (!Model.IsOrganiser)
+            {
+                <form asp-action="UploadPicture" method="post" enctype="multipart/form-data" class="text-start">
+                    <label class="form-label" for="picture">Profile picture</label>
+                    <input class="form-control mb-2" type="file" id="picture" name="picture" accept="image/png,image/jpeg,image/webp" required data-preview="avatar-preview" />
+                    <div class="form-text mb-3">JPEG, PNG or WebP, up to 5 MB. Stored securely in RaceDay's cloud storage.</div>
+                    <button type="submit" class="btn btn-rd-dark w-100"><i class="bi bi-cloud-arrow-up-fill"></i> Upload picture</button>
+                </form>
+            }
+            else
+            {
+                <p class="small rd-muted mb-0">Organiser accounts are shown by organisation name, so they don't use a profile picture.</p>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="rd-card rd-card-body">
+            <h2 class="h3 mb-3">Personal details</h2>
+            <form asp-action="Index" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" autocomplete="name" />
+                        <span asp-validation-for="FullName"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" autocomplete="email" />
+                        <span asp-validation-for="Email"></span>
+                    </div>
+                    @if (Model.IsOrganiser)
+                    {
+                        <div class="col-md-6">
+                            <label asp-for="OrganisationName" class="form-label"></label>
+                            <input asp-for="OrganisationName" class="form-control" />
+                            <span asp-validation-for="OrganisationName"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ContactNumber" class="form-label"></label>
+                            <input asp-for="ContactNumber" class="form-control" autocomplete="tel" />
+                            <span asp-validation-for="ContactNumber"></span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label"></label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" max="@DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="DateOfBirth"></span>
+                        </div>
+                    }
+                </div>
+                <button type="submit" class="btn btn-rd-primary mt-4 px-4">Save changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
