@@ -1,0 +1,18 @@
+@{
+    var user = Context.GetCurrentUser();
+}
+<div class="rd-auth">
+    <div class="rd-card rd-empty">
+        <i class="bi bi-shield-lock"></i>
+        <h1>Wrong lane</h1>
+        <p>This page is for @(user?.IsOrganiser == true ? "participants" : "organisers") only, so your account can't open it.</p>
+        @if (user?.IsOrganiser == true)
+        {
+            <a class="btn btn-rd-primary" asp-controller="Organiser" asp-action="Dashboard">Back to your dashboard</a>
+        }
+        else
+        {
+            <a class="btn btn-rd-primary" asp-controller="Events" asp-action="Index">Browse upcoming events</a>
+        }
+    </div>
+</div>
