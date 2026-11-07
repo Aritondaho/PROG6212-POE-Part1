@@ -1,0 +1,16 @@
+# Keep the Docker build context small and free of local build output, IDE files and secrets.
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/*.user
+**/TestResults/
+**/wwwroot/uploads/
+.git/
+.github/
+docs/
+tests/
+*.md
+*.png
+**/Dockerfile
+.dockerignore
