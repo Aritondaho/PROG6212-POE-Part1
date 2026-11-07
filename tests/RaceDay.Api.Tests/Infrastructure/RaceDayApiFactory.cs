@@ -35,6 +35,9 @@ public sealed class RaceDayApiFactory : WebApplicationFactory<Program>
         // "Testing" skips HTTPS redirection and the Development-only sample data.
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:DefaultConnection", DatabaseConnectionString);
+
+        // Tests never touch Azure: an empty connection string makes the API use local image storage.
+        builder.UseSetting("AzureBlobStorage:ConnectionString", string.Empty);
     }
 
     // xUnit disposes class fixtures asynchronously, so the database is dropped here, while the host is still alive.
