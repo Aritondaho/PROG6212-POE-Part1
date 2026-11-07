@@ -1,0 +1,79 @@
+@model EventListViewModel
+@{
+    var user = Context.GetCurrentUser();
+    var f = Model.Filter;
+}
+
+@section Hero {
+    <section class="rd-hero">
+        <div class="container">
+            <div class="rd-eyebrow text-white-50">@(user is null ? "South Africa's race calendar" : $"Hi {user.FullName.Split(' ')[0]}")</div>
+            <h1>Find your next <em>start line</em></h1>
+            <p class="mb-0">Road runs, walks and cycle tours from community fun runs to marathons. Pick an event, choose your category and you're entered.</p>
+        </div>
+    </section>
+}
+
+<form method="get" asp-action="Index" class="rd-card rd-filter-bar mb-4" role="search" aria-label="Filter events">
+    <div class="row g-2 align-items-end">
+        <div class="col-12 col-lg-3">
+            <label class="form-label" for="Search">Search</label>
+            <input class="form-control" id="Search" name="Search" value="@f.Search" placeholder="Event or organiser name" />
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="Type">Type</label>
+            <select class="form-select" id="Type" name="Type">
+                <option value="">All types</option>
+                @foreach (var type in RaceDayValues.EventTypes)
+                {
+                    <option value="@type" selected="@(f.Type == type)">@type</option>
+                }
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="Date">Date</label>
+            <input class="form-control" type="date" id="Date" name="Date" value="@f.Date?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-12 col-lg-2">
+            <label class="form-label" for="Location">Location</label>
+            <input class="form-control" id="Location" name="Location" value="@f.Location" placeholder="e.g. Durban" />
+        </div>
+        <div class="col-12 col-lg-3 d-flex flex-wrap gap-2 align-items-center">
+            <div class="form-check me-2">
+                <input class="form-check-input" type="checkbox" id="IncludePast" name="IncludePast" value="true" checked="@f.IncludePast" />
+                <label class="form-check-label small" for="IncludePast">Include past events</label>
+            </div>
+            <button type="submit" class="btn btn-rd-primary"><i class="bi bi-funnel-fill"></i> Filter</button>
+            @if (f.IsActive)
+            {
+                <a class="btn btn-rd-outline" asp-action="Index">Clear</a>
+            }
+        </div>
+    </div>
+</form>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h3 mb-0">@(f.IncludePast ? "All events" : "Upcoming events")</h2>
+    <span class="rd-muted small">@Model.Events.Count event@(Model.Events.Count == 1 ? "" : "s")</span>
+</div>
+
+@if (Model.Events.Count == 0)
+{
+    <div class="rd-card rd-empty">
+        <i class="bi bi-calendar-x"></i>
+        <h3>No events match</h3>
+        <p class="mb-3">Try a different type, date or location@(f.IncludePast ? "" : ", or include past events").</p>
+        <a class="btn btn-rd-outline" asp-action="Index">Show all upcoming events</a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var evt in Model.Events)
+        {
+            <div class="col-md-6 col-xl-4">
+                <partial name="_EventCard" model="(evt, Model.EnteredEventIds.Contains(evt.EventID))" />
+            </div>
+        }
+    </div>
+}

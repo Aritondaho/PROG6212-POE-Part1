@@ -1,0 +1,39 @@
+@model (EventItem Event, bool Entered)
+@{
+    var evt = Model.Event;
+    var banner = Images.Resolve(evt.BannerImageUrl);
+}
+<article class="rd-card rd-event-card">
+    <a asp-controller="Events" asp-action="Details" asp-route-id="@evt.EventID" aria-label="@evt.Name"
+       class="rd-banner @(banner is null ? "rd-banner-placeholder" : "")"
+       style="@(banner is null ? "" : $"background-image:url('{banner}')")">
+        @if (banner is null)
+        {
+            <i class="bi @Ui.EventTypeIcon(evt.EventType)"></i>
+        }
+        <span class="rd-date-chip">
+            <span class="day">@evt.Date.Day</span>
+            <span class="month">@evt.Date.ToString("MMM")</span>
+        </span>
+    </a>
+    <div class="rd-card-body">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <span class="@Ui.EventTypeClass(evt.EventType)"><i class="bi @Ui.EventTypeIcon(evt.EventType)"></i>@evt.EventType</span>
+            <span class="rd-tag">@Ui.Distance(evt.Distance)</span>
+            @if (Model.Entered)
+            {
+                <span class="rd-status rd-status-confirmed"><i class="bi bi-ticket-perforated-fill"></i>Entered</span>
+            }
+        </div>
+        <h3><a asp-controller="Events" asp-action="Details" asp-route-id="@evt.EventID">@evt.Name</a></h3>
+        <div class="rd-meta mb-3">
+            <span><i class="bi bi-geo-alt-fill"></i>@evt.Location</span>
+            <span><i class="bi bi-clock-fill"></i>@Ui.DateTime(evt.Date)</span>
+        </div>
+        <p class="rd-muted small mb-3">@evt.Description</p>
+        <div class="mt-auto d-flex justify-content-between align-items-center">
+            <span class="small rd-muted">by @evt.OrganisationName</span>
+            <a class="btn btn-sm btn-rd-dark" asp-controller="Events" asp-action="Details" asp-route-id="@evt.EventID">View event</a>
+        </div>
+    </div>
+</article>

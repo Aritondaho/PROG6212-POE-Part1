@@ -1,24 +1,11 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using RaceDay.Web.Models;
 
 namespace RaceDay.Web.Controllers;
 
-public class HomeController : Controller
+/// <summary>The site root sends each role to its own home page.</summary>
+public class HomeController : RaceDayController
 {
-    public IActionResult Index()
-    {
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-    }
+    public IActionResult Index() => CurrentUser?.IsOrganiser == true
+        ? RedirectToAction("Dashboard", "Organiser")
+        : RedirectToAction("Index", "Events");
 }
