@@ -1,0 +1,79 @@
+@model ResultsPageViewModel
+@{
+    var eventId = Model.Summary.Event.EventID;
+}
+
+<partial name="_OrganiserEventTabs" model='(Model.Summary, "Results")' />
+
+@if (!Model.CanCapture)
+{
+    <div class="alert alert-info d-flex gap-2">
+        <i class="bi bi-clock-history"></i>
+        <div>Results can be captured once the event starts on <strong>@Ui.DateTime(Model.Summary.Event.Date)</strong>. Until then you can review who will be on the start line.</div>
+    </div>
+}
+
+<div class="rd-card">
+    <div class="rd-card-body pb-2 d-flex flex-wrap justify-content-between align-items-end gap-2">
+        <div>
+            <h2 class="h3 mb-0">Capture results</h2>
+            <span class="rd-muted small">@Model.Captured of @Model.Rows.Count entries have a published result. Times are h:mm:ss.</span>
+        </div>
+    </div>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="rd-empty pt-0">
+            <i class="bi bi-trophy"></i>
+            <p class="mb-0">No active entries for this event, so there are no results to capture.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table rd-table">
+                <thead>
+                    <tr><th>Participant</th><th>Category</th><th>Entry</th><th style="width:9rem">Finish time</th><th style="width:7rem">Position</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var (en, result) in Model.Rows)
+                    {
+                        var formId = $"result-{en.EnrolmentID}";
+                        <tr>
+                            <td class="fw-semibold">
+                                @en.ParticipantName
+                                @if (result is not null)
+                                {
+                                    <span class="d-block small text-success fw-normal"><i class="bi bi-check-circle-fill"></i> Published · @Ui.Ordinal(result.FinishPosition) of @result.TotalFinishers</span>
+                                }
+                            </td>
+                            <td>@en.CategoryName</td>
+                            <td><span class="@Ui.StatusBadgeClass(en.Status)"><i class="bi @Ui.StatusIcon(en.Status)"></i>@en.Status</span></td>
+                            <td>
+                                <input form="@formId" name="finishTime" class="form-control form-control-sm rd-time" inputmode="numeric"
+                                       pattern="\d{1,2}:\d{2}(:\d{2})?" placeholder="1:52:07" aria-label="Finish time for @en.ParticipantName"
+                                       value="@(result is null ? "" : Ui.FinishTime(result.FinishTime))" disabled="@(!Model.CanCapture)" required />
+                            </td>
+                            <td>
+                                <input form="@formId" name="finishPosition" type="number" min="1" class="form-control form-control-sm" placeholder="1"
+                                       aria-label="Position for @en.ParticipantName" value="@result?.FinishPosition" disabled="@(!Model.CanCapture)" required />
+                            </td>
+                            <td class="text-end">
+                                <form id="@formId" asp-action="Save" asp-route-eventId="@eventId" method="post">
+                                    <input type="hidden" name="enrolmentId" value="@en.EnrolmentID" />
+                                    @if (result is not null)
+                                    {
+                                        <input type="hidden" name="resultId" value="@result.ResultID" />
+                                    }
+                                    <button type="submit" class="btn btn-sm @(result is null ? "btn-rd-primary" : "btn-rd-outline")" disabled="@(!Model.CanCapture)">
+                                        @(result is null ? "Publish" : "Update")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
