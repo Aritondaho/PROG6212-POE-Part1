@@ -7,9 +7,12 @@
     <!-- Emits XML doc comments so Swagger UI shows each endpoint's purpose, inputs and responses. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <!-- Keeps the Azure Blob Storage connection string out of source control (dotnet user-secrets). -->
+    <UserSecretsId>raceday-api-3f6c2a1e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.30.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.*">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
