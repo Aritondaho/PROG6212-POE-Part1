@@ -166,7 +166,7 @@ RaceDay.slnLaunch                    Visual Studio "API + Web" launch profile
 
 **CI build screenshot:**
 
-> **TODO:** after pushing, add a screenshot of the green workflow run as `docs/part3-ci-green-build.png`:
+> [![Part 3 CI build](docs/Screenshot%202026-11-14%20131748.png)](docs/Screenshot%202026-11-14%20131748.png)
 > `![Part 3 green CI build](docs/part3-ci-green-build.png)`
 
 ## Part 3 Video Presentation
