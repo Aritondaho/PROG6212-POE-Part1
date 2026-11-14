@@ -171,8 +171,7 @@ RaceDay.slnLaunch                    Visual Studio "API + Web" launch profile
 
 ## Part 3 Video Presentation
 
-> **TODO:** add the unlisted YouTube link for the Part 3 walkthrough (full application, MVC structure, Blob Storage integration and Docker setup, with your own voice):
-> **https://youtu.be/XXXXXXXXXXX**
+> https://youtu.be/cJcpEQO-a7U
 
 ## AI Tool Disclosure
 
